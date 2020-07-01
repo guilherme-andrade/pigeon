@@ -1,8 +1,8 @@
-module Pigeon
+module PaperPlane
   module FlightRoutes
     module ClassMethods
-      def default_to(route_klass)
-        @route_klass = route_klass
+      def default_engine(engine)
+        @engine = engine
       end
 
       def default_views(folder_path)
@@ -13,15 +13,17 @@ module Pigeon
         @default_template_format = format
       end
 
-      def default_views_folder
+      private
+
+      def _default_views_folder
         @default_views_folder
       end
 
-      def default_route_klass
-        @route_klass
+      def _engine
+        @engine
       end
 
-      def default_template_format
+      def _default_template_format
         @default_template_format
       end
     end

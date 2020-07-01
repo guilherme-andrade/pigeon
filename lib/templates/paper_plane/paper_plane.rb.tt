@@ -1,0 +1,9 @@
+<% module_namespacing do -%>
+class <%= class_name %>PaperPlane < PaperPlane::Base
+<% messages.each do |message| -%>
+  def <%= message %>
+  end
+<%= "\n" unless message == messages.last -%>
+<% end -%>
+end
+<% end -%>

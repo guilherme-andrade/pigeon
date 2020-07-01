@@ -4,7 +4,7 @@ require 'active_support/version'
 require 'active_support/callbacks'
 require 'active_support/concern'
 
-module Pigeon
+module PaperPlane
   # Add callbacks support to Active Delivery (requires ActiveSupport::Callbacks)
   #
   #   # Run method before delivering notification
@@ -30,9 +30,9 @@ module Pigeon
   module Callbacks
     extend ActiveSupport::Concern
 
-    include ActiveSupport::Callbacks
-
     included do
+      include ActiveSupport::Callbacks
+
       define_flight_callbacks :flying
     end
 

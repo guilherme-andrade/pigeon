@@ -1,6 +1,6 @@
-require 'pigeon/flight_routes/class_methods'
+require 'paper_plane/flight_routes/class_methods'
 
-module Pigeon
+module PaperPlane
   module FlightRoutes
     NoRecipientError = Class.new(ArgumentError)
     NoTemplateError = Class.new(ArgumentError)
@@ -9,8 +9,8 @@ module Pigeon
     class Base
       def self.inherited(subklass)
         subklass.class_eval do
-          extend Pigeon::FlightRoutes::ClassMethods
-          default_views 'app/pigeons'
+          extend PaperPlane::FlightRoutes::ClassMethods
+          default_views 'app/paper_planes'
         end
       end
 
@@ -18,7 +18,7 @@ module Pigeon
 
       def initialize(route_name = nil)
         @_route_name = route_name || _default_route_name
-        @_route_klass = _default_route_klass
+        @_engine = _default_engine
       end
 
       def self.fly(mid, context, **args)
@@ -33,7 +33,7 @@ module Pigeon
 
         _extract_recipient
         _extract_template_formats
-        _extract_pigeon_name
+        _extract_paper_plane_name
 
         begin
           do_fly
@@ -120,8 +120,8 @@ module Pigeon
         @_template_formats = @context.dig(:@template_formats)
       end
 
-      def _extract_pigeon_name
-        @_pigeon_name = @context.dig(:@pigeon_name)
+      def _extract_paper_plane_name
+        @_paper_plane_name = @context.dig(:@paper_plane_name)
       end
 
       def _extract_recipient
@@ -161,27 +161,27 @@ module Pigeon
       end
 
       def _template_folder
-        _pigeon_templates_path
+        _paper_plane_templates_path
       end
 
       def _template_full_file_path
         File.join(_full_template_folder_path, _template_name)
       end
 
-      def _default_route_klass
-        self.class.default_route_klass
+      def _default_engine
+        self.class._default_engine
       end
 
       def _default_template_format
-        self.class.default_template_format
+        self.class._default_template_format
       end
 
       def _default_views_folder
-        Rails.root.join(self.class.default_views_folder)
+        Rails.root.join(self.class._default_views_folder)
       end
 
-      def _pigeon_templates_path
-        @_pigeon_name.underscore
+      def _paper_plane_templates_path
+        @_paper_plane_name.underscore
       end
 
       def _default_route_name

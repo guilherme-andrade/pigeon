@@ -1,7 +1,9 @@
-module Pigeon
+require 'action_mailer'
+
+module PaperPlane
   module FlightRoutes
     class Email < Base
-      default_to ApplicationMailer
+      default_engine ActionMailer::Base
 
       private
 
@@ -12,7 +14,7 @@ module Pigeon
 
         @_template_formats = %i[html text]
 
-        mail = @_route_klass.send(@method, context.merge(headers: headers))
+        mail = @_engine.send(@method, context.merge(headers: headers))
 
         if Rails.env.development?
           LetterOpener::DeliveryMethod.new.deliver!(mail)
@@ -38,7 +40,7 @@ module Pigeon
       end
 
       def _insert_mailer_method
-        @_route_klass.define_method(@method) do |context|
+        @_engine.define_method(@method) do |context|
           context.each do |var, _v|
             next unless var.to_s.starts_with? '@'
 
@@ -49,11 +51,11 @@ module Pigeon
       end
 
       def _preprend_view_lookup
-        @_route_klass.prepend_view_path _default_views_folder
+        @_engine.prepend_view_path _default_views_folder
       end
 
       def _set_layout
-        @_route_klass.layout 'email'
+        @_engine.layout 'email'
       end
     end
   end

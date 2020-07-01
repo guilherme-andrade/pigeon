@@ -1,11 +1,23 @@
 # frozen_string_literal: true
 
-require 'klass_name_extractor'
+require 'objectified'
+require 'active_support/callbacks'
+require 'active_support/core_ext/enumerable'
 
-# defines Pigeon::Base, the dad of all pigeons.
-module Pigeon
+require 'paper_plane/callbacks'
+require 'paper_plane/flight_routes/base'
+require 'paper_plane/flight_routes/email'
+require 'paper_plane/flight_routes/sms'
+
+# defines PaperPlane::Base, the dad of all paper_planes.
+module PaperPlane
   class Base
-    include KlassNameExtractor
+    include ActiveSupport::Callbacks
+    include Objectified
+
+    include PaperPlane::Callbacks
+
+    object_type :paper_plane
 
     class << self
       def skip(*flight_routes_types)
@@ -27,10 +39,10 @@ module Pigeon
       end
 
       def fly_action(mid, **kwargs)
-        new(**kwargs).tap do |pigeon|
-          pigeon.run_callbacks(:flying) do
-            pigeon.send(mid)
-            pigeon.fly(mid)
+        new(**kwargs).tap do |paper_plane|
+          paper_plane.run_callbacks(:flying) do
+            paper_plane.send(mid)
+            paper_plane.fly(mid)
           end
         end
       end
@@ -50,11 +62,9 @@ module Pigeon
 
     def self.inherited(subclass)
       subclass.class_eval do
-        object_type :pigeon
-
-        include Pigeon::Callbacks
-
-        Pigeon::FlightRouteRegisterer.call(subclass)
+        object_type :paper_plane
+        register_flight_route :email, PaperPlane::FlightRoutes::Email
+        register_flight_route :sms, PaperPlane::FlightRoutes::Sms
       end
     end
 
@@ -65,9 +75,9 @@ module Pigeon
       @template_formats = template_formats
       @skipped_flight_routes = []
       @flight_routes = self.class.flight_routes
-      @pigeon_name = abstract_klass_string
+      @paper_plane_name = base_klass_string
       @recipient ||= kwargs.delete(:to)
-      @async ||= kwargs.delete(:async) || Rails.env.development?
+      @async ||= kwargs.delete(:async) || ENV['RAILS_ENV'] == 'development'
       @params = kwargs
     end
 
@@ -78,7 +88,7 @@ module Pigeon
       if @async
         do_fly
       else
-        Pigeon::FlyJob.fly_later(self.class.to_s, mid, **params)
+        PaperPlane::FlyJob.fly_later(self.class.to_s, mid, **params)
       end
     end
 
@@ -89,7 +99,7 @@ module Pigeon
       fly(mid)
     end
 
-    # determines which routes the pigeon should skip
+    # determines which routes the paper_plane should skip
     def skip(*flight_routes_types)
       @skipped_flight_routes.concat(flight_routes_types)
     end
@@ -99,7 +109,7 @@ module Pigeon
       skipped_flight_routes.exclude? route_type
     end
 
-    # extracts context from the method in the pigeon, to be injected in each flight route
+    # extracts context from the method in the paper_plane, to be injected in each flight route
     def context
       instance_variables.map { |attribute| [attribute, instance_variable_get(attribute)] }.to_h
     end
